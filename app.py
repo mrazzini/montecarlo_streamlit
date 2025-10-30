@@ -146,33 +146,89 @@ st.sidebar.header("⚙️ Parametri di Simulazione")
 # ETF Selection
 st.sidebar.subheader("📈 Selezione ETF")
 
-stock_etfs = {
+# Popular presets
+stock_etfs_popular = {
     'VT': 'Vanguard Total World Stock',
     'VWCE.DE': 'Vanguard FTSE All-World (EUR)',
     'SWDA.MI': 'iShares MSCI World (Milano)',
-    'ACWI': 'iShares MSCI ACWI'
+    'ACWI': 'iShares MSCI ACWI',
+    'VOO': 'Vanguard S&P 500',
+    'VTI': 'Vanguard Total Stock Market',
+    'VXUS': 'Vanguard Total International'
 }
 
-bond_etfs = {
+bond_etfs_popular = {
     'BNDW': 'Vanguard Total World Bond',
     'AGG': 'iShares Core US Aggregate',
     'AGGH.MI': 'iShares Global Aggregate (Milano)',
-    'VWRL.L': 'Vanguard Global Bond Index'
+    'BND': 'Vanguard Total Bond Market',
+    'BNDX': 'Vanguard Total International Bond',
+    'TLT': 'iShares 20+ Year Treasury'
 }
 
-stock_etf = st.sidebar.selectbox(
-    "ETF Azionario",
-    options=list(stock_etfs.keys()),
-    format_func=lambda x: f"{x} - {stock_etfs[x]}",
-    index=0
+# Stock ETF selection
+stock_mode = st.sidebar.radio(
+    "Modalità selezione ETF Azionario",
+    ["Lista popolare", "Cerca ticker personalizzato"],
+    key="stock_mode",
+    help="Scegli da una lista o cerca qualsiasi ticker"
 )
 
-bond_etf = st.sidebar.selectbox(
-    "ETF Obbligazionario",
-    options=list(bond_etfs.keys()),
-    format_func=lambda x: f"{x} - {bond_etfs[x]}",
-    index=0
+if stock_mode == "Lista popolare":
+    stock_etf = st.sidebar.selectbox(
+        "ETF Azionario",
+        options=list(stock_etfs_popular.keys()),
+        format_func=lambda x: f"{x} - {stock_etfs_popular[x]}",
+        index=0
+    )
+else:
+    stock_etf = st.sidebar.text_input(
+        "Ticker ETF Azionario",
+        value="VT",
+        help="Es: VT, SPY, QQQ, VWCE.DE, SWDA.MI",
+        placeholder="Inserisci ticker..."
+    ).upper().strip()
+    
+    if stock_etf:
+        # Validate ticker
+        with st.spinner(f"Verifica {stock_etf}..."):
+            test = get_etf_stats(stock_etf, period='1y')
+            if test:
+                st.sidebar.success(f"✅ {stock_etf} trovato!")
+            else:
+                st.sidebar.error(f"❌ {stock_etf} non trovato o dati insufficienti")
+
+# Bond ETF selection
+bond_mode = st.sidebar.radio(
+    "Modalità selezione ETF Obbligazionario",
+    ["Lista popolare", "Cerca ticker personalizzato"],
+    key="bond_mode",
+    help="Scegli da una lista o cerca qualsiasi ticker"
 )
+
+if bond_mode == "Lista popolare":
+    bond_etf = st.sidebar.selectbox(
+        "ETF Obbligazionario",
+        options=list(bond_etfs_popular.keys()),
+        format_func=lambda x: f"{x} - {bond_etfs_popular[x]}",
+        index=0
+    )
+else:
+    bond_etf = st.sidebar.text_input(
+        "Ticker ETF Obbligazionario",
+        value="BNDW",
+        help="Es: BNDW, AGG, BND, AGGH.MI",
+        placeholder="Inserisci ticker..."
+    ).upper().strip()
+    
+    if bond_etf:
+        # Validate ticker
+        with st.spinner(f"Verifica {bond_etf}..."):
+            test = get_etf_stats(bond_etf, period='1y')
+            if test:
+                st.sidebar.success(f"✅ {bond_etf} trovato!")
+            else:
+                st.sidebar.error(f"❌ {bond_etf} non trovato o dati insufficienti")
 
 use_historical = st.sidebar.checkbox("Usa dati storici reali", value=True, 
                                      help="Se disattivato, usa parametri standard di mercato")
